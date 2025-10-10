@@ -5,9 +5,9 @@ from flask import session
 # Configuración de Firebase
 FIREBASE_CONFIG = {
     "apiKey": "AIzaSyDZN6HJ_4VD_MUgWnEvSkHhy7TpPvb5w0Y",
-    "authDomain": "proyecto-fc729.firebaseapp.com",
-    "projectId": "proyecto-fc729",
-    "storageBucket": "proyecto-fc729.firebasestorage.app",
+    "authDomain": "bootcamp-d8378.firebaseapp.com",
+    "projectId": "bootcamp-d8378",
+    "storageBucket": "bootcamp-d8378.firebasestorage.app",
     "messagingSenderId": "772596105663",
     "appId": "1:772596105663:web:bacf8fbee158e615f6210a"
 }
