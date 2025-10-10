@@ -29,9 +29,9 @@ class FirebaseAuth:
             }
             response = requests.post(url, json=data)
             result = response.json()
-            
+
             if response.status_code == 200:
-                return {"success": True, "user": result}
+                return {"success": True, "user": result, "id_token": result.get("idToken")}
             else:
                 error_msg = result.get('error', {}).get('message', 'Error desconocido')
                 return {"success": False, "error": error_msg}
@@ -75,23 +75,27 @@ class FirebaseAuth:
 
 class StudentData:
     @staticmethod
-    def save_student_data(user_id, student_data):
+    def save_student_data(user_id, student_data, id_token=None):
         """Guarda los datos del estudiante en Firebase Realtime Database"""
         try:
             url = f"{FIREBASE_DB_URL}/students/{user_id}.json"
+            if id_token:
+                url += f"?auth={id_token}"
             response = requests.put(url, json=student_data)
             if response.status_code == 200:
                 return {"success": True}
             else:
-                return {"success": False, "error": "Error al guardar datos"}
+                return {"success": False, "error": f"Error al guardar datos: {response.text}"}
         except Exception as e:
             return {"success": False, "error": str(e)}
     
     @staticmethod
-    def get_student_data(user_id):
+    def get_student_data(user_id, id_token=None):
         """Obtiene los datos del estudiante desde Firebase Realtime Database"""
         try:
             url = f"{FIREBASE_DB_URL}/students/{user_id}.json"
+            if id_token:
+                url += f"?auth={id_token}"
             response = requests.get(url)
             if response.status_code == 200:
                 data = response.json()
@@ -100,38 +104,38 @@ class StudentData:
                 else:
                     return {"success": False, "error": "No se encontraron datos del estudiante"}
             else:
-                return {"success": False, "error": "Error al obtener datos"}
+                return {"success": False, "error": f"Error al obtener datos: {response.text}"}
         except Exception as e:
             return {"success": False, "error": str(e)}
     
     @staticmethod
-    def update_student_progress(user_id, tema, ejercicio_completado=False):
+    def update_student_progress(user_id, tema, ejercicio_completado=False, id_token=None):
         """Actualiza el progreso del estudiante"""
         try:
             # Obtener datos actuales
-            current_data = StudentData.get_student_data(user_id)
+            current_data = StudentData.get_student_data(user_id, id_token)
             if not current_data["success"]:
                 return current_data
-            
+
             data = current_data["data"]
             if "progreso" not in data:
                 data["progreso"] = {}
-            
+
             if tema not in data["progreso"]:
                 data["progreso"][tema] = {
                     "ejercicios_completados": 0,
                     "ultimo_acceso": None,
                     "videos_vistos": 0
                 }
-            
+
             if ejercicio_completado:
                 data["progreso"][tema]["ejercicios_completados"] += 1
-            
+
             data["progreso"][tema]["ultimo_acceso"] = {
                 "fecha": str(__import__('datetime').datetime.now()),
                 "tipo": "ejercicio" if ejercicio_completado else "visualizacion"
             }
-            
-            return StudentData.save_student_data(user_id, data)
+
+            return StudentData.save_student_data(user_id, data, id_token)
         except Exception as e:
             return {"success": False, "error": str(e)}

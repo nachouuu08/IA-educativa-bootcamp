@@ -29,17 +29,18 @@ def login():
             return redirect(url_for("login"))
         
         result = FirebaseAuth.login_user(email, password)
-        
+
         if result["success"]:
             user_id = result['user']['localId']
             session['user'] = user_id
             session['email'] = email
-            
+            session['id_token'] = result.get('id_token')
+
             # Cargar datos del estudiante
-            student_data = StudentData.get_student_data(user_id)
+            student_data = StudentData.get_student_data(user_id, session.get('id_token'))
             if student_data["success"]:
                 session['student_data'] = student_data["data"]
-            
+
             flash("Inicio de sesión exitoso.")
             return redirect(url_for("index"))
         else:
@@ -74,10 +75,11 @@ def register():
         
         # Crear usuario en Firebase Auth
         result = FirebaseAuth.register_user(email, password)
-        
+
         if result["success"]:
             user_id = result["user"]["localId"]
-            
+            id_token = result["user"].get("idToken")
+
             # Guardar datos adicionales del estudiante
             student_data = {
                 "email": email,
@@ -89,8 +91,8 @@ def register():
                 "progreso": {},
                 "activo": True
             }
-            
-            save_result = StudentData.save_student_data(user_id, student_data)
+
+            save_result = StudentData.save_student_data(user_id, student_data, id_token)
             
             if save_result["success"]:
                 flash("Cuenta creada exitosamente. Ahora puedes iniciar sesión.")
@@ -110,7 +112,7 @@ def perfil():
     
     if not student_data:
         # Intentar cargar desde la base de datos
-        result = StudentData.get_student_data(user_id)
+        result = StudentData.get_student_data(user_id, session.get('id_token'))
         if result["success"]:
             student_data = result["data"]
             session['student_data'] = student_data
@@ -173,7 +175,7 @@ def visual():
     # Registrar progreso del estudiante
     user_id = session.get('user')
     if user_id:
-        StudentData.update_student_progress(user_id, tema, ejercicio_completado=False)
+        StudentData.update_student_progress(user_id, tema, ejercicio_completado=False, session.get('id_token'))
 
     return render_template(
         "visual.html",
