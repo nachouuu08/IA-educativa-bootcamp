@@ -129,8 +129,26 @@ def logout():
     return redirect(url_for("login"))
 
 @app.route("/", methods=["GET", "POST"])
-@login_required
 def index():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    asignatura = "Estadística"
+    if request.method == "POST":
+        nombre = request.form.get("nombre")
+        tema = request.form.get("tema")
+        estilo = request.form.get("estilo")
+
+        if not nombre or not tema or not estilo:
+            flash("⚠️ Por favor completa todos los campos.")
+            return redirect(url_for("index"))
+
+        if estilo == "Visual":
+            return redirect(url_for("visual", nombre=nombre, tema=tema))
+        elif estilo == "Práctico":
+            return redirect(url_for("practico", nombre=nombre, tema=tema))
+
+    return render_template("index.html", temas=temas["Estadística"])
     asignatura = "Estadística"
     if request.method == "POST":
         nombre = request.form.get("nombre")
