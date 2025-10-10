@@ -175,7 +175,7 @@ def visual():
     # Registrar progreso del estudiante
     user_id = session.get('user')
     if user_id:
-        StudentData.update_student_progress(user_id, tema, ejercicio_completado=False, session.get('id_token'))
+        StudentData.update_student_progress(user_id, tema, ejercicio_completado=False, id_token=session.get('id_token'))
 
     return render_template(
         "visual.html",
