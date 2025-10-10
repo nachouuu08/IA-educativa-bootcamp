@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - IA Educativa</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='modern-style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="user-info">
+            <h1>Mi Perfil</h1>
+            <div class="user-controls">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">Volver al Inicio</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-secondary">Cerrar Sesión</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="alert alert-success">{{ messages[0] }}</div>
+          {% endif %}
+        {% endwith %}
+
+        {% if student_data %}
+        <div class="profile-section">
+            <h2>Información Personal</h2>
+            <div class="profile-grid">
+                <div class="profile-item">
+                    <label>Nombre</label>
+                    <span>{{ student_data.nombre }}</span>
+                </div>
+                <div class="profile-item">
+                    <label>Email</label>
+                    <span>{{ student_data.email }}</span>
+                </div>
+                <div class="profile-item">
+                    <label>Edad</label>
+                    <span>{{ student_data.edad }} años</span>
+                </div>
+                <div class="profile-item">
+                    <label>Nivel educativo</label>
+                    <span>{{ student_data.nivel_educativo.title() }}</span>
+                </div>
+                <div class="profile-item">
+                    <label>Intereses</label>
+                    <span>{{ student_data.intereses.title() }}</span>
+                </div>
+                <div class="profile-item">
+                    <label>Miembro desde</label>
+                    <span>{{ student_data.fecha_registro[:10] }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h2>Progreso de Aprendizaje</h2>
+            {% if student_data.progreso %}
+                <div class="progress-grid">
+                    {% for tema, progreso in student_data.progreso.items() %}
+                    <div class="progress-item">
+                        <h3>{{ tema }}</h3>
+                        <div class="progress-stats">
+                            <div class="stat">
+                                <span class="stat-label">Ejercicios completados</span>
+                                <span class="stat-value">{{ progreso.ejercicios_completados }}</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Último acceso</span>
+                                <span class="stat-value">
+                                    {% if progreso.ultimo_acceso %}
+                                        {{ progreso.ultimo_acceso.fecha[:10] }}
+                                    {% else %}
+                                        No hay registros
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-label">Tipo de actividad</span>
+                                <span class="stat-value">
+                                    {% if progreso.ultimo_acceso %}
+                                        {{ progreso.ultimo_acceso.tipo.title() }}
+                                    {% else %}
+                                        Sin actividad
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 40px; background: var(--gray-100); border-radius: var(--border-radius);">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">📚</div>
+                    <h3 style="color: var(--gray-600); margin-bottom: 10px;">No hay progreso registrado aún</h3>
+                    <p style="color: var(--gray-500);">¡Comienza a estudiar para ver tu progreso aquí!</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary" style="margin-top: 20px;">Comenzar a Estudiar</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Estadísticas adicionales -->
+        <div class="profile-section">
+            <h2>Estadísticas Generales</h2>
+            <div class="profile-grid">
+                <div class="profile-item" style="text-align: center; padding: 30px;">
+                    <div style="font-size: 2.5rem; margin-bottom: 15px; color: var(--primary-color);">🎯</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color); margin-bottom: 5px;">
+                        {% if student_data.progreso %}
+                            {{ student_data.progreso.values() | map(attribute='ejercicios_completados') | sum }}
+                        {% else %}
+                            0
+                        {% endif %}
+                    </div>
+                    <div style="font-weight: 600; color: var(--gray-700);">Ejercicios Totales</div>
+                </div>
+                <div class="profile-item" style="text-align: center; padding: 30px;">
+                    <div style="font-size: 2.5rem; margin-bottom: 15px; color: var(--success-color);">📖</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--success-color); margin-bottom: 5px;">
+                        {{ student_data.progreso | length if student_data.progreso else 0 }}
+                    </div>
+                    <div style="font-weight: 600; color: var(--gray-700);">Temas Explorados</div>
+                </div>
+                <div class="profile-item" style="text-align: center; padding: 30px;">
+                    <div style="font-size: 2.5rem; margin-bottom: 15px; color: var(--accent-color);">⭐</div>
+                    <div style="font-size: 2rem; font-weight: 700; color: var(--accent-color); margin-bottom: 5px;">
+                        {% set total_exercises = student_data.progreso.values() | map(attribute='ejercicios_completados') | sum %}
+                        {% if total_exercises >= 10 %}
+                            Avanzado
+                        {% elif total_exercises >= 5 %}
+                            Intermedio
+                        {% elif total_exercises > 0 %}
+                            Principiante
+                        {% else %}
+                            Nuevo
+                        {% endif %}
+                    </div>
+                    <div style="font-weight: 600; color: var(--gray-700);">Nivel Actual</div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-error">
+            No se pudieron cargar los datos del perfil. Por favor, intenta de nuevo.
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Animaciones de entrada
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in-up');
+                }
+            });
+        }, observerOptions);
+
+        // Observar elementos para animaciones
+        document.querySelectorAll('.profile-section, .profile-item, .progress-item').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Efecto hover mejorado para las tarjetas
+        document.querySelectorAll('.profile-item, .progress-item').forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Contador animado para las estadísticas
+        function animateCounter(element, target, duration = 2000) {
+            let start = 0;
+            const increment = target / (duration / 16);
+            
+            const timer = setInterval(() => {
+                start += increment;
+                if (start >= target) {
+                    element.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(start);
+                }
+            }, 16);
+        }
+
+        // Animar contadores cuando sean visibles
+        const counterObserver = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counter = entry.target;
+                    const target = parseInt(counter.textContent);
+                    if (!isNaN(target) && target > 0) {
+                        animateCounter(counter, target);
+                        counterObserver.unobserve(counter);
+                    }
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.stat-value').forEach(counter => {
+            const value = parseInt(counter.textContent);
+            if (!isNaN(value) && value > 0) {
+                counterObserver.observe(counter);
+            }
+        });
+    </script>
+</body>
+</html>

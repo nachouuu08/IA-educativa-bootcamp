@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: ia-educativa
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: False

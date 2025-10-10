@@ -1,0 +1,31 @@
+ARCHIVOS QUE DEBES SUBIR A GITHUB:
+
+📁 Archivos principales:
+✅ app.py
+✅ firebase_config.py
+✅ requirements.txt
+✅ render.yaml
+✅ busquedas.py
+✅ ejercicios.py
+✅ temas.py
+✅ datos.json
+
+📁 Carpeta static/:
+✅ static/style.css
+✅ static/modern-style.css
+
+📁 Carpeta Templates/:
+✅ Templates/index.html
+✅ Templates/login.html
+✅ Templates/register.html
+✅ Templates/perfil.html
+✅ Templates/visual.html
+✅ Templates/practico.html
+
+❌ NO subir:
+❌ __pycache__/ (carpeta)
+❌ firebase_config_example.py
+❌ DEPLOYMENT_GUIDE.md
+❌ FILES_TO_UPLOAD.txt (este archivo)
+
+TOTAL: 14 archivos importantes
