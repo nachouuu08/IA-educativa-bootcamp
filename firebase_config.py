@@ -1,29 +1,55 @@
+import firebase_admin
+from firebase_admin import credentials, auth, db
 import requests
 import json
 from flask import session
+import os
 
-# Configuración de Firebase
+# Configuración de Firebase - usando el proyecto del archivo firebase-key.json
 FIREBASE_CONFIG = {
-    "apiKey": "AIzaSyCRPLCoWBUFEU8iEvqkh7d1z_-qDtArce0",
-    "authDomain": "bootcamp-d8378.firebaseapp.com",
-    "databaseURL": "https://bootcamp-d8378-default-rtdb.firebaseio.com",
-    "projectId": "bootcamp-d8378",
-    "storageBucket": "bootcamp-d8378.appspot.com",
-    "messagingSenderId": "437122481987",
-    "appId": "1:437122481987:web:22ea0b9aae69068e4d39f6",
-    "measurementId": "G-3D0183GS34"
+    "projectId": "proyecto-fc729",
+    "databaseURL": "https://proyecto-fc729-default-rtdb.firebaseio.com"
 }
 
 # URLs de Firebase REST API
 FIREBASE_AUTH_URL = f"https://identitytoolkit.googleapis.com/v1/accounts"
 FIREBASE_DB_URL = f"https://{FIREBASE_CONFIG['projectId']}-default-rtdb.firebaseio.com"
 
+# Inicializar Firebase Admin SDK
+def initialize_firebase():
+    """Inicializa Firebase Admin SDK si no está ya inicializado"""
+    if not firebase_admin._apps:
+        try:
+            # Usar variables de entorno para credenciales (más seguro para producción)
+            if os.environ.get('FIREBASE_SERVICE_ACCOUNT'):
+                # Para producción: usar credenciales desde variable de entorno
+                import json
+                service_account_info = json.loads(os.environ.get('FIREBASE_SERVICE_ACCOUNT'))
+                cred = credentials.Certificate(service_account_info)
+            else:
+                # Para desarrollo local: usar archivo firebase-key.json
+                cred = credentials.Certificate('firebase-key.json')
+            
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': FIREBASE_CONFIG['databaseURL']
+            })
+            print("Firebase inicializado correctamente")
+        except Exception as e:
+            print(f"Error al inicializar Firebase: {e}")
+            print("Asegúrate de tener el archivo firebase-key.json o la variable FIREBASE_SERVICE_ACCOUNT configurada")
+
+# Inicializar Firebase al importar el módulo
+initialize_firebase()
+
 class FirebaseAuth:
     @staticmethod
     def login_user(email, password):
-        """Autentica un usuario con email y contraseña"""
+        """Autentica un usuario con email y contraseña usando REST API"""
         try:
-            url = f"{FIREBASE_AUTH_URL}:signInWithPassword?key={FIREBASE_CONFIG['apiKey']}"
+            # Usar REST API para autenticación - necesitamos obtener la API key del proyecto
+            # Por ahora usamos una API key genérica, pero debería ser la del proyecto proyecto-fc729
+            api_key = os.environ.get('FIREBASE_API_KEY', 'AIzaSyCRPLCoWBUFEU8iEvqkh7d1z_-qDtArce0')
+            url = f"{FIREBASE_AUTH_URL}:signInWithPassword?key={api_key}"
             data = {
                 "email": email,
                 "password": password,
@@ -42,9 +68,10 @@ class FirebaseAuth:
     
     @staticmethod
     def register_user(email, password):
-        """Registra un nuevo usuario"""
+        """Registra un nuevo usuario usando REST API"""
         try:
-            url = f"{FIREBASE_AUTH_URL}:signUp?key={FIREBASE_CONFIG['apiKey']}"
+            api_key = os.environ.get('FIREBASE_API_KEY', 'AIzaSyCRPLCoWBUFEU8iEvqkh7d1z_-qDtArce0')
+            url = f"{FIREBASE_AUTH_URL}:signUp?key={api_key}"
             data = {
                 "email": email,
                 "password": password,
@@ -78,31 +105,26 @@ class FirebaseAuth:
 class StudentData:
     @staticmethod
     def save_student_data(user_id, student_data):
-        """Guarda los datos del estudiante en Firebase Realtime Database"""
+        """Guarda los datos del estudiante en Firebase Realtime Database usando Admin SDK"""
         try:
-            url = f"{FIREBASE_DB_URL}/students/{user_id}.json"
-            response = requests.put(url, json=student_data)
-            if response.status_code == 200:
-                return {"success": True}
-            else:
-                return {"success": False, "error": "Error al guardar datos"}
+            # Usar Firebase Admin SDK para escribir en Realtime Database
+            ref = db.reference(f'students/{user_id}')
+            ref.set(student_data)
+            return {"success": True}
         except Exception as e:
             return {"success": False, "error": str(e)}
     
     @staticmethod
     def get_student_data(user_id):
-        """Obtiene los datos del estudiante desde Firebase Realtime Database"""
+        """Obtiene los datos del estudiante desde Firebase Realtime Database usando Admin SDK"""
         try:
-            url = f"{FIREBASE_DB_URL}/students/{user_id}.json"
-            response = requests.get(url)
-            if response.status_code == 200:
-                data = response.json()
-                if data:
-                    return {"success": True, "data": data}
-                else:
-                    return {"success": False, "error": "No se encontraron datos del estudiante"}
+            ref = db.reference(f'students/{user_id}')
+            data = ref.get()
+            
+            if data:
+                return {"success": True, "data": data}
             else:
-                return {"success": False, "error": "Error al obtener datos"}
+                return {"success": False, "error": "No se encontraron datos del estudiante"}
         except Exception as e:
             return {"success": False, "error": str(e)}
     
