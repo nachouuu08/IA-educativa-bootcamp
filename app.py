@@ -100,7 +100,7 @@ def register():
         else:
             flash(f"Error al crear la cuenta: {result['error']}")
     
-    return render_template("register.html")
+    return render_template("register_simple.html")
 
 @app.route("/perfil")
 @login_required
