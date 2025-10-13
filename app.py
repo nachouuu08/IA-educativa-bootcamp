@@ -135,8 +135,13 @@ def index():
         tema = request.form.get("tema")
         estilo = request.form.get("estilo")
 
+        temas_disponibles = temas["Estadística"]
         if not nombre or not tema or not estilo:
             flash("⚠️ Por favor completa todos los campos.")
+            return redirect(url_for("index"))
+
+        if tema not in temas_disponibles:
+            flash("El tema seleccionado no es válido. Selecciona uno de la lista.")
             return redirect(url_for("index"))
 
         if estilo == "Visual":
