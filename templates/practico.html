@@ -14,10 +14,12 @@
             margin: 30px 0;
             box-shadow: var(--shadow-lg);
         }
+        
         .exercise-header {
             text-align: center;
             margin-bottom: 30px;
         }
+        
         .exercise-header h2 {
             background: var(--primary-gradient);
             -webkit-background-clip: text;
@@ -26,6 +28,7 @@
             font-size: 2rem;
             margin-bottom: 10px;
         }
+        
         .topic-badge {
             display: inline-block;
             background: var(--accent-gradient);
@@ -34,6 +37,7 @@
             border-radius: var(--border-radius);
             font-weight: 600;
         }
+        
         .question {
             background: var(--gray-100);
             padding: 25px;
@@ -44,9 +48,11 @@
             font-weight: 600;
             color: var(--gray-800);
         }
+        
         .options-container {
             margin: 30px 0;
         }
+        
         .option {
             display: block;
             margin: 15px 0;
@@ -58,20 +64,24 @@
             transition: var(--transition);
             position: relative;
         }
+        
         .option:hover {
             border-color: var(--primary-color);
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
         }
+        
         .option input[type="radio"] {
             display: none;
         }
+        
         .option.selected {
             border-color: var(--primary-color);
             background: rgba(102, 126, 234, 0.1);
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
         }
+        
         .option.selected::before {
             content: '✓';
             position: absolute;
@@ -82,6 +92,7 @@
             font-weight: bold;
             font-size: 1.2rem;
         }
+        
         .button-group {
             display: flex;
             gap: 15px;
@@ -89,6 +100,7 @@
             flex-wrap: wrap;
             justify-content: center;
         }
+        
         .modal {
             display: none;
             position: fixed;
@@ -100,6 +112,7 @@
             background: rgba(0,0,0,0.5);
             backdrop-filter: blur(5px);
         }
+        
         .modal-content {
             background: var(--white);
             margin: 10% auto;
@@ -110,12 +123,14 @@
             box-shadow: var(--shadow-xl);
             animation: fadeInUp 0.3s ease-out;
         }
+        
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
+        
         .close {
             color: var(--gray-400);
             font-size: 28px;
@@ -123,9 +138,11 @@
             cursor: pointer;
             transition: var(--transition);
         }
+        
         .close:hover {
             color: var(--danger-color);
         }
+        
         .result-correct {
             background: var(--success-gradient);
             color: var(--white);
@@ -135,6 +152,7 @@
             margin: 20px 0;
             animation: bounce 0.6s ease-out;
         }
+        
         .result-incorrect {
             background: var(--danger-color);
             color: var(--white);
@@ -144,6 +162,7 @@
             margin: 20px 0;
             animation: pulse 0.6s ease-out;
         }
+        
         .hint-content, .guide-content {
             background: var(--gray-100);
             padding: 20px;
@@ -157,12 +176,14 @@
 <div class="container">
     <div class="exercise-container">
         <div class="exercise-header">
-            <h2>🧠 Ejercicio Práctico</h2>
+            <h2>🧩 Ejercicio Práctico</h2>
             <div class="topic-badge">{{ tema }}</div>
         </div>
+
         <div class="question">
             {{ ejercicio.pregunta }}
         </div>
+
         <div class="options-container">
             <form id="exerciseForm">
                 {% for opcion in ejercicio.opciones %}
@@ -173,6 +194,7 @@
                 {% endfor %}
             </form>
         </div>
+
         <div class="button-group">
             <button type="button" class="btn btn-primary" onclick="verificar('{{ ejercicio.respuesta }}')">
                 ✅ Verificar Respuesta
@@ -184,13 +206,15 @@
                 📘 Guía Paso a Paso
             </button>
         </div>
+
         <div style="text-align: center; margin-top: 40px;">
             <form method="POST">
                 <button type="submit" class="btn btn-primary">
-                    🔄 Generar Otro Ejercicio
+                    🔁 Generar Otro Ejercicio
                 </button>
             </form>
         </div>
+
         <div style="text-align: center; margin-top: 20px;">
             <a href="{{ url_for('index') }}" class="btn btn-secondary">
                 🏠 Volver al Inicio
@@ -199,6 +223,7 @@
     </div>
 </div>
 
+<!-- Modal para resultados y ayuda -->
 <div id="resultModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -213,41 +238,58 @@
 </div>
 
 <script>
+    // Interactividad para las opciones
     document.querySelectorAll('.option').forEach(option => {
         option.addEventListener('click', function() {
-            document.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            // Remover selección anterior
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Seleccionar actual
             this.classList.add('selected');
             this.querySelector('input[type="radio"]').checked = true;
         });
     });
+
     function verificar(respuestaCorrecta) {
         const seleccion = document.querySelector('input[name="opcion"]:checked');
         if (!seleccion) {
             showModal('⚠️ Atención', '<div class="alert alert-warning">Debes seleccionar una opción antes de verificar.</div>');
             return;
         }
+        
         const modalBody = seleccion.value === respuestaCorrecta ? 
-            '<div class="result-correct"><h3>✅ ¡Correcto!</h3><p>Excelente trabajo. Has respondido correctamente.</p></div>' :
-            '<div class="result-incorrect"><h3>❌ Incorrecto</h3><p>No te preocupes, revisa la pista o la guía para aprender más.</p></div>';
+            '<div class="result-correct"><h3>¡Correcto! 🎉</h3><p>Excelente trabajo. Has respondido correctamente.</p></div>' :
+            '<div class="result-incorrect"><h3>Incorrecto 😔</h3><p>No te preocupes, revisa la pista o la guía para aprender más.</p></div>';
+        
         showModal('Resultado', modalBody);
     }
+
     function mostrarPista(pista) {
         showModal('💡 Pista', `<div class="hint-content">${pista}</div>`);
     }
+
     function mostrarGuia(guia) {
         showModal('📘 Guía Paso a Paso', `<div class="guide-content">${guia.replace(/\n/g, '<br>')}</div>`);
     }
+
     function showModal(title, body) {
         document.getElementById('modalTitle').textContent = title;
         document.getElementById('modalBody').innerHTML = body;
         document.getElementById('resultModal').style.display = 'block';
     }
+
     function closeModal() {
         document.getElementById('resultModal').style.display = 'none';
     }
+
+    // Cerrar modal al hacer clic fuera
     window.onclick = function(event) {
         const modal = document.getElementById('resultModal');
-        if (event.target === modal) modal.style.display = 'none';
+        if (event.target === modal) {
+            modal.style.display = 'none';
+        }
     }
 </script>
 </body>
