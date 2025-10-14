@@ -300,7 +300,6 @@
                               placeholder="Escribe tu respuesta aquí..."></textarea>
                     {% endif %}
 
-                    <!-- Feedback inline -->
                     <div class="feedback" id="feedback_{{ pregunta.id }}" style="display:none;"></div>
                 </div>
                 {% endfor %}
@@ -318,13 +317,18 @@
 <script>
     const preguntas = {{ preguntas | tojson }};
 
-    // Skeleton loading simulado
+    // Mostrar skeleton apenas se carga la ventana
     document.addEventListener('DOMContentLoaded', () => {
+        // Mostrar skeleton inmediatamente
+        document.getElementById('skeletonContainer').style.display = 'block';
+        document.getElementById('questionsContainer').style.display = 'none';
+
+        // Simular tiempo de carga antes de mostrar preguntas
         setTimeout(() => {
             document.getElementById('skeletonContainer').style.display = 'none';
             document.getElementById('questionsContainer').style.display = 'block';
-        }, 1200);
-        updateProgress();
+            updateProgress();
+        }, 1500);
     });
 
     function selectOption(element) {
@@ -403,7 +407,6 @@
             btn.textContent='📊 Evaluar Respuestas';
         }
     }
-    
 </script>
 </body>
 </html>
