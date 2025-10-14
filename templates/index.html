@@ -12,7 +12,7 @@
         <div class="user-info">
             <h1>IA Educativa - Estadística</h1>
             <div class="user-controls">
-                <span>Bienvenido, {{ session.email }}</span>
+                <span>Bienvenido, {{ nombre }}</span>
                 <a href="{{ url_for('perfil') }}" class="btn btn-primary">Mi Perfil</a>
                 <a href="{{ url_for('logout') }}" class="btn btn-secondary">Cerrar Sesión</a>
             </div>
@@ -29,10 +29,6 @@
             <p class="text-center mb-4" style="color: var(--gray-600);">Selecciona un tema y tu estilo de aprendizaje preferido</p>
 
             <form method="POST" id="learningForm">
-                <div class="form-section">
-                    <label>Nombre del estudiante</label>
-                    <input type="text" name="nombre" placeholder="Tu nombre" required>
-                </div>
 
                 <div class="form-section">
                     <label>Tema de estudio</label>

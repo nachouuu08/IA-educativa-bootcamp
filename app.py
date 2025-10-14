@@ -130,13 +130,27 @@ def logout():
 @login_required
 def index():
     asignatura = "Estadística"
+
+    # Cargar nombre del estudiante desde la sesión o Firebase
+    user_id = session.get("user")
+    student_data = session.get("student_data")
+
+    if not student_data:
+        result = StudentData.get_student_data(user_id)
+        if result["success"]:
+            student_data = result["data"]
+            session["student_data"] = student_data
+        else:
+            student_data = {"nombre": "Estudiante"}
+
+    nombre_estudiante = student_data.get("nombre", "Estudiante")
+
     if request.method == "POST":
-        nombre = request.form.get("nombre")
         tema = request.form.get("tema")
         estilo = request.form.get("estilo")
 
         temas_disponibles = temas["Estadística"]
-        if not nombre or not tema or not estilo:
+        if not tema or not estilo:
             flash("⚠️ Por favor completa todos los campos.")
             return redirect(url_for("index"))
 
@@ -145,11 +159,12 @@ def index():
             return redirect(url_for("index"))
 
         if estilo == "Visual":
-            return redirect(url_for("visual", nombre=nombre, tema=tema))
+            return redirect(url_for("visual", nombre=nombre_estudiante, tema=tema))
         elif estilo == "Práctico":
-            return redirect(url_for("practico", nombre=nombre, tema=tema))
+            return redirect(url_for("practico", nombre=nombre_estudiante, tema=tema))
 
-    return render_template("index.html", temas=temas["Estadística"])
+    return render_template("index.html", nombre=nombre_estudiante, temas=temas["Estadística"])
+
 
 
 # ---------------------- VISUAL ------------------------
