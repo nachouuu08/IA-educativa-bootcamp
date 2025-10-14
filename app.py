@@ -239,9 +239,18 @@ def practico():
         if student_data and 'nivel_academico' in student_data:
             nivel_academico = student_data['nivel_academico']
         
+        # Debug: Verificar configuración
+        import os
+        api_key = os.getenv('GEMINI_API_KEY')
+        print(f"🔍 DEBUG: API Key presente: {bool(api_key)}")
+        print(f"🔍 DEBUG: Nivel académico: {nivel_academico}")
+        print(f"🔍 DEBUG: Tema: {tema}")
+        
         # Generar preguntas con Gemini adaptadas al nivel
         gemini_service = GeminiService()
         preguntas = gemini_service.generar_preguntas(tema, nivel_academico, cantidad=10)
+        
+        print(f"🔍 DEBUG: Preguntas generadas: {len(preguntas)}")
         
         # Guardar preguntas en la sesión para la evaluación
         session['preguntas_actuales'] = preguntas

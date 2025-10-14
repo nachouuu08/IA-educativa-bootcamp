@@ -95,9 +95,13 @@ class GeminiService:
         """
         
         try:
+            print(f"🔄 Enviando prompt a Gemini...")
             response = self.model.generate_content(prompt)
+            print(f"✅ Respuesta recibida de Gemini")
+            
             # Limpiar la respuesta para extraer solo el JSON
             content = response.text.strip()
+            print(f"📝 Contenido crudo: {content[:200]}...")
             
             # Buscar el JSON en la respuesta
             if content.startswith('```json'):
@@ -106,10 +110,12 @@ class GeminiService:
                 content = content[:-3]
             
             preguntas = json.loads(content)
+            print(f"✅ JSON parseado correctamente: {len(preguntas)} preguntas")
             return preguntas
             
         except Exception as e:
-            print(f"Error generando preguntas: {e}")
+            print(f"❌ Error generando preguntas: {e}")
+            print(f"❌ Tipo de error: {type(e).__name__}")
             # Preguntas de fallback en caso de error
             return self._preguntas_fallback(tema, cantidad)
     
