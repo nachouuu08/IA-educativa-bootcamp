@@ -135,18 +135,8 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label>Intereses académicos</label>
-                <select name="intereses" required>
-                    <option value="">Selecciona tu área de interés</option>
-                    <option value="estadistica">Estadística</option>
-                    <option value="matematicas">Matemáticas</option>
-                    <option value="ciencias">Ciencias</option>
-                    <option value="ingenieria">Ingeniería</option>
-                    <option value="economia">Economía</option>
-                    <option value="otro">Otro</option>
-                </select>
-            </div>
+            <!-- Campo oculto para interés académico fijo -->
+            <input type="hidden" name="intereses" value="estadistica">
 
             <button type="submit">Crear Cuenta</button>
         </form>
