@@ -7,6 +7,84 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='modern-style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* ================= Skeleton Loading ================= */
+        .skeleton {
+            background: var(--gray-200);
+            border-radius: var(--border-radius);
+            position: relative;
+            overflow: hidden;
+        }
+        .skeleton::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150px;
+            height: 100%;
+            width: 150px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: loading 1.2s infinite;
+        }
+        @keyframes loading {
+            0% { left: -150px; }
+            50% { left: 100%; }
+            100% { left: 100%; }
+        }
+        .skeleton-question {
+            margin: 25px 0;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            background: var(--gray-100);
+        }
+
+        /* Overlay de evaluación */
+        .evaluating-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            border-radius: var(--border-radius-lg);
+        }
+        .evaluating-overlay .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid var(--gray-200);
+            border-top: 6px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg);}
+            100% { transform: rotate(360deg);}
+        }
+
+        /* Feedback inline */
+        .feedback {
+            margin-top: 12px;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .feedback.correct {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success-color);
+            border-left: 4px solid var(--success-color);
+        }
+        .feedback.incorrect {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+            border-left: 4px solid var(--danger-color);
+        }
+
+        /* ================= Mantener estilos originales ================= */
         .evaluation-container {
             background: var(--white);
             border-radius: var(--border-radius-lg);
@@ -14,12 +92,10 @@
             margin: 30px 0;
             box-shadow: var(--shadow-lg);
         }
-        
         .evaluation-header {
             text-align: center;
             margin-bottom: 40px;
         }
-        
         .evaluation-header h2 {
             background: var(--primary-gradient);
             -webkit-background-clip: text;
@@ -28,7 +104,6 @@
             font-size: 2rem;
             margin-bottom: 10px;
         }
-        
         .topic-badge {
             display: inline-block;
             background: var(--accent-gradient);
@@ -37,7 +112,6 @@
             border-radius: var(--border-radius);
             font-weight: 600;
         }
-        
         .progress-bar {
             background: var(--gray-200);
             height: 8px;
@@ -45,14 +119,12 @@
             margin: 20px 0;
             overflow: hidden;
         }
-        
         .progress-fill {
             background: var(--primary-gradient);
             height: 100%;
             transition: width 0.3s ease;
             width: 0%;
         }
-        
         .question-item {
             background: var(--gray-50);
             border-radius: var(--border-radius);
@@ -60,14 +132,12 @@
             margin: 25px 0;
             border-left: 4px solid var(--primary-color);
         }
-        
         .question-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        
         .question-number {
             background: var(--primary-color);
             color: var(--white);
@@ -76,7 +146,6 @@
             font-weight: 600;
             font-size: 0.9rem;
         }
-        
         .question-type {
             background: var(--accent-color);
             color: var(--white);
@@ -85,18 +154,15 @@
             font-size: 0.8rem;
             font-weight: 500;
         }
-        
         .question-text {
             font-size: 1.1rem;
             font-weight: 600;
             color: var(--gray-800);
             margin-bottom: 20px;
         }
-        
         .options-container {
             margin: 20px 0;
         }
-        
         .option {
             display: block;
             margin: 12px 0;
@@ -108,24 +174,20 @@
             transition: var(--transition);
             position: relative;
         }
-        
         .option:hover {
             border-color: var(--primary-color);
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
         }
-        
         .option input[type="radio"] {
             display: none;
         }
-        
         .option.selected {
             border-color: var(--primary-color);
             background: rgba(102, 126, 234, 0.1);
             transform: translateY(-2px);
             box-shadow: var(--shadow-md);
         }
-        
         .option.selected::before {
             content: '✓';
             position: absolute;
@@ -136,7 +198,6 @@
             font-weight: bold;
             font-size: 1.2rem;
         }
-        
         .open-response {
             width: 100%;
             min-height: 100px;
@@ -148,20 +209,17 @@
             resize: vertical;
             transition: var(--transition);
         }
-        
         .open-response:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
         .evaluation-actions {
             text-align: center;
             margin: 40px 0;
             padding: 30px 0;
             border-top: 2px solid var(--gray-200);
         }
-        
         .btn-evaluate {
             background: var(--primary-gradient);
             color: var(--white);
@@ -174,114 +232,22 @@
             transition: var(--transition);
             box-shadow: var(--shadow-md);
         }
-        
         .btn-evaluate:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-lg);
         }
-        
         .btn-evaluate:disabled {
             background: var(--gray-400);
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-        }
-        
-        .modal-content {
-            background: var(--white);
-            margin: 5% auto;
-            padding: 30px;
-            border-radius: var(--border-radius-lg);
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: var(--shadow-xl);
-            animation: fadeInUp 0.3s ease-out;
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .close {
-            color: var(--gray-400);
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-        
-        .close:hover {
-            color: var(--danger-color);
-        }
-        
-        .result-summary {
-            background: var(--gray-100);
-            padding: 20px;
-            border-radius: var(--border-radius);
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .score-display {
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 10px 0;
-        }
-        
-        .score-excellent { color: var(--success-color); }
-        .score-good { color: var(--primary-color); }
-        .score-fair { color: var(--warning-color); }
-        .score-poor { color: var(--danger-color); }
-        
-        .question-result {
-            margin: 15px 0;
-            padding: 15px;
-            border-radius: var(--border-radius);
-            border-left: 4px solid;
-        }
-        
-        .question-result.correct {
-            background: rgba(34, 197, 94, 0.1);
-            border-left-color: var(--success-color);
-        }
-        
-        .question-result.incorrect {
-            background: rgba(239, 68, 68, 0.1);
-            border-left-color: var(--danger-color);
-        }
-        
-        .question-result h4 {
-            margin: 0 0 10px 0;
-            font-size: 1rem;
-        }
-        
-        .question-result p {
-            margin: 0;
-            font-size: 0.9rem;
-            color: var(--gray-600);
-        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="evaluation-container">
+
         <div class="evaluation-header">
             <h2>📝 Evaluación Práctica</h2>
             <div class="topic-badge">{{ tema }}</div>
@@ -291,236 +257,152 @@
             <p>Responde todas las preguntas y presiona "Evaluar" al final</p>
         </div>
 
-        <form id="evaluationForm">
-            {% for pregunta in preguntas %}
-            <div class="question-item" data-question-id="{{ pregunta.id }}">
-                <div class="question-header">
-                    <span class="question-number">Pregunta {{ pregunta.id }}</span>
-                    <span class="question-type">
-                        {% if pregunta.tipo == 'opcion_multiple' %}Opción Múltiple
-                        {% elif pregunta.tipo == 'verdadero_falso' %}Verdadero/Falso
-                        {% elif pregunta.tipo == 'respuesta_abierta' %}Respuesta Abierta
-                        {% endif %}
-                    </span>
-                </div>
-                
-                <div class="question-text">{{ pregunta.pregunta }}</div>
-                
-                {% if pregunta.tipo == 'opcion_multiple' or pregunta.tipo == 'verdadero_falso' %}
-                <div class="options-container">
-                    {% for key, value in pregunta.opciones.items() %}
-                    <label class="option" onclick="selectOption(this)">
-                        <input type="radio" name="pregunta_{{ pregunta.id }}" value="{{ key }}">
-                        <strong>{{ key }}.</strong> {{ value }}
-                    </label>
-                    {% endfor %}
-                </div>
-                {% elif pregunta.tipo == 'respuesta_abierta' %}
-                <textarea class="open-response" name="pregunta_{{ pregunta.id }}" 
-                          placeholder="Escribe tu respuesta aquí..."></textarea>
-                {% endif %}
+        <!-- Skeleton Loading -->
+        <div id="skeletonContainer">
+            {% for _ in range(10) %}
+            <div class="skeleton-question">
+                <div class="skeleton" style="width: 120px; height: 20px; margin-bottom: 15px;"></div>
+                <div class="skeleton" style="width: 80%; height: 16px; margin-bottom: 10px;"></div>
+                <div class="skeleton" style="width: 90%; height: 16px; margin-bottom: 10px;"></div>
+                <div class="skeleton" style="width: 70%; height: 16px;"></div>
             </div>
             {% endfor %}
-
-            <div class="evaluation-actions">
-                <button type="button" class="btn-evaluate" onclick="evaluarRespuestas()">
-                    📊 Evaluar Respuestas
-                </button>
-                <div style="margin-top: 20px;">
-                    <a href="{{ url_for('index') }}" class="btn btn-secondary">
-                        🏠 Volver al Inicio
-                    </a>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal para resultados -->
-<div id="resultModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 id="modalTitle">Resultados de la Evaluación</h3>
-            <span class="close" onclick="closeModal()">&times;</span>
         </div>
-        <div id="modalBody"></div>
-        <div style="text-align: center; margin-top: 20px;">
-            <button class="btn btn-primary" onclick="closeModal()">Cerrar</button>
+
+        <!-- Contenedor real -->
+        <div id="questionsContainer" style="display:none;">
+            <form id="evaluationForm">
+                {% for pregunta in preguntas %}
+                <div class="question-item" data-question-id="{{ pregunta.id }}">
+                    <div class="question-header">
+                        <span class="question-number">Pregunta {{ pregunta.id }}</span>
+                        <span class="question-type">
+                            {% if pregunta.tipo == 'opcion_multiple' %}Opción Múltiple
+                            {% elif pregunta.tipo == 'verdadero_falso' %}Verdadero/Falso
+                            {% elif pregunta.tipo == 'respuesta_abierta' %}Respuesta Abierta
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="question-text">{{ pregunta.pregunta }}</div>
+
+                    {% if pregunta.tipo == 'opcion_multiple' or pregunta.tipo == 'verdadero_falso' %}
+                    <div class="options-container">
+                        {% for key, value in pregunta.opciones.items() %}
+                        <label class="option" onclick="selectOption(this)">
+                            <input type="radio" name="pregunta_{{ pregunta.id }}" value="{{ key }}">
+                            <strong>{{ key }}.</strong> {{ value }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% elif pregunta.tipo == 'respuesta_abierta' %}
+                    <textarea class="open-response" name="pregunta_{{ pregunta.id }}" 
+                              placeholder="Escribe tu respuesta aquí..."></textarea>
+                    {% endif %}
+
+                    <!-- Feedback inline -->
+                    <div class="feedback" id="feedback_{{ pregunta.id }}" style="display:none;"></div>
+                </div>
+                {% endfor %}
+
+                <div class="evaluation-actions">
+                    <button type="button" class="btn-evaluate" onclick="evaluarRespuestas()">
+                        📊 Evaluar Respuestas
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
-    // Variables globales para almacenar preguntas y respuestas
     const preguntas = {{ preguntas | tojson }};
-    let respuestasEvaluadas = [];
-    
-    // Función para seleccionar opciones
+
+    // Skeleton loading simulado
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            document.getElementById('skeletonContainer').style.display = 'none';
+            document.getElementById('questionsContainer').style.display = 'block';
+        }, 1200);
+        updateProgress();
+    });
+
     function selectOption(element) {
-        // Remover selección anterior en la misma pregunta
         const questionContainer = element.closest('.question-item');
-        questionContainer.querySelectorAll('.option').forEach(opt => {
-            opt.classList.remove('selected');
-        });
-        
-        // Seleccionar actual
+        questionContainer.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
         element.classList.add('selected');
         element.querySelector('input[type="radio"]').checked = true;
-        
-        // Actualizar barra de progreso
         updateProgress();
     }
-    
-    // Función para actualizar la barra de progreso
+
     function updateProgress() {
         const totalQuestions = preguntas.length;
         let answeredQuestions = 0;
-        
         preguntas.forEach(pregunta => {
-            const questionId = `pregunta_${pregunta.id}`;
+            const qid = `pregunta_${pregunta.id}`;
             if (pregunta.tipo === 'respuesta_abierta') {
-                const textarea = document.querySelector(`textarea[name="${questionId}"]`);
-                if (textarea && textarea.value.trim() !== '') {
-                    answeredQuestions++;
-                }
+                const val = document.querySelector(`textarea[name="${qid}"]`).value.trim();
+                if(val) answeredQuestions++;
             } else {
-                const selected = document.querySelector(`input[name="${questionId}"]:checked`);
-                if (selected) {
-                    answeredQuestions++;
-                }
+                if(document.querySelector(`input[name="${qid}"]:checked`)) answeredQuestions++;
             }
         });
-        
-        const progress = (answeredQuestions / totalQuestions) * 100;
-        document.getElementById('progressFill').style.width = progress + '%';
-        
-        // Habilitar/deshabilitar botón de evaluación
-        const evaluateBtn = document.querySelector('.btn-evaluate');
-        if (answeredQuestions === totalQuestions) {
-            evaluateBtn.disabled = false;
-        } else {
-            evaluateBtn.disabled = true;
-        }
+        document.getElementById('progressFill').style.width = (answeredQuestions/totalQuestions)*100 + '%';
+        const btn = document.querySelector('.btn-evaluate');
+        btn.disabled = answeredQuestions !== totalQuestions;
     }
-    
-    // Función para evaluar todas las respuestas
+
     async function evaluarRespuestas() {
-        const evaluateBtn = document.querySelector('.btn-evaluate');
-        evaluateBtn.disabled = true;
-        evaluateBtn.textContent = '🔄 Evaluando...';
-        
+        const btn = document.querySelector('.btn-evaluate');
+        btn.disabled = true;
+        btn.textContent = '🔄 Evaluando...';
+
+        const container = document.getElementById('questionsContainer');
+        const overlay = document.createElement('div');
+        overlay.className = 'evaluating-overlay';
+        overlay.innerHTML = '<div class="spinner"></div>';
+        container.style.position = 'relative';
+        container.appendChild(overlay);
+
         try {
-            // Recopilar todas las respuestas
             const respuestas = {};
-            
             preguntas.forEach(pregunta => {
-                const questionId = `pregunta_${pregunta.id}`;
-                if (pregunta.tipo === 'respuesta_abierta') {
-                    const textarea = document.querySelector(`textarea[name="${questionId}"]`);
-                    respuestas[pregunta.id] = textarea ? textarea.value.trim() : '';
+                const qid = `pregunta_${pregunta.id}`;
+                if(pregunta.tipo==='respuesta_abierta'){
+                    respuestas[pregunta.id] = document.querySelector(`textarea[name="${qid}"]`).value.trim();
                 } else {
-                    const selected = document.querySelector(`input[name="${questionId}"]:checked`);
-                    respuestas[pregunta.id] = selected ? selected.value : '';
+                    const sel = document.querySelector(`input[name="${qid}"]:checked`);
+                    respuestas[pregunta.id] = sel ? sel.value : '';
                 }
             });
-            
-            // Enviar respuestas al backend para evaluación
-            const response = await fetch('/evaluar_respuestas', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    tema: '{{ tema }}',
-                    preguntas: preguntas,
-                    respuestas: respuestas
-                })
+
+            const response = await fetch('/evaluar_respuestas',{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({tema:'{{ tema }}', preguntas, respuestas})
             });
-            
             const resultado = await response.json();
-            
-            if (resultado.success) {
-                mostrarResultados(resultado);
+
+            if(resultado.success){
+                resultado.respuestas.forEach((r,i)=>{
+                    const fb = document.getElementById(`feedback_${preguntas[i].id}`);
+                    fb.style.display='flex';
+                    fb.className='feedback '+(r.correcta?'correct':'incorrect');
+                    fb.innerHTML=`${r.correcta?'✅':'❌'} ${r.explicacion}`;
+                });
             } else {
-                showModal('Error', `<div class="alert alert-danger">Error al evaluar las respuestas: ${resultado.error}</div>`);
+                alert('Error al evaluar: '+resultado.error);
             }
-            
-        } catch (error) {
-            console.error('Error:', error);
-            showModal('Error', '<div class="alert alert-danger">Error de conexión. Inténtalo de nuevo.</div>');
+
+        } catch(err){
+            console.error(err);
+            alert('Error de conexión');
         } finally {
-            evaluateBtn.disabled = false;
-            evaluateBtn.textContent = '📊 Evaluar Respuestas';
+            overlay.remove();
+            btn.disabled=false;
+            btn.textContent='📊 Evaluar Respuestas';
         }
     }
-    
-    // Función para mostrar resultados
-    function mostrarResultados(resultado) {
-        const totalPreguntas = resultado.respuestas.length;
-        const respuestasCorrectas = resultado.respuestas.filter(r => r.correcta).length;
-        const puntaje = (respuestasCorrectas / totalPreguntas) * 100;
-        
-        let scoreClass = 'score-poor';
-        let scoreText = 'Necesitas mejorar';
-        
-        if (puntaje >= 90) {
-            scoreClass = 'score-excellent';
-            scoreText = '¡Excelente!';
-        } else if (puntaje >= 70) {
-            scoreClass = 'score-good';
-            scoreText = 'Bien hecho';
-        } else if (puntaje >= 50) {
-            scoreClass = 'score-fair';
-            scoreText = 'Regular';
-        }
-        
-        let modalBody = `
-            <div class="result-summary">
-                <h3>Tu Puntuación</h3>
-                <div class="score-display ${scoreClass}">${puntaje.toFixed(1)}%</div>
-                <p><strong>${scoreText}</strong></p>
-                <p>${respuestasCorrectas} de ${totalPreguntas} respuestas correctas</p>
-            </div>
-        `;
-        
-        // Mostrar resultados por pregunta
-        resultado.respuestas.forEach((respuesta, index) => {
-            const pregunta = preguntas[index];
-            const resultClass = respuesta.correcta ? 'correct' : 'incorrect';
-            const icon = respuesta.correcta ? '✅' : '❌';
-            
-            modalBody += `
-                <div class="question-result ${resultClass}">
-                    <h4>${icon} Pregunta ${pregunta.id}</h4>
-                    <p><strong>Tu respuesta:</strong> ${respuesta.respuesta_usuario || 'Sin respuesta'}</p>
-                    <p><strong>Explicación:</strong> ${respuesta.explicacion}</p>
-                </div>
-            `;
-        });
-        
-        showModal('Resultados de la Evaluación', modalBody);
-    }
-    
-    function showModal(title, body) {
-        document.getElementById('modalTitle').textContent = title;
-        document.getElementById('modalBody').innerHTML = body;
-        document.getElementById('resultModal').style.display = 'block';
-    }
-
-    function closeModal() {
-        document.getElementById('resultModal').style.display = 'none';
-    }
-
-    // Cerrar modal al hacer clic fuera
-    window.onclick = function(event) {
-        const modal = document.getElementById('resultModal');
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    }
-    
-    // Inicializar barra de progreso
-    updateProgress();
 </script>
 </body>
 </html>
