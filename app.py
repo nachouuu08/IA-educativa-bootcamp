@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from busquedas import buscar_videos_youtube
 from temas import temas
 from ejercicios import generar_ejercicio_aleatorio
 from firebase_config import FirebaseAuth, StudentData
+from gemini_service import GeminiService
 import random
+import json
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "clave_secreta_demo"
@@ -211,18 +214,112 @@ def practico():
     nombre = request.args.get("nombre")
     tema = request.args.get("tema")
 
-    # Si el usuario hace clic en "Generar otro ejercicio"
-    if request.method == "POST":
-        return redirect(url_for("practico", nombre=nombre, tema=tema))
+    # Evitar errores si el tema llega vacío
+    if not tema:
+        flash("⚠️ Tema no especificado.")
+        return redirect(url_for("index"))
 
-    ejercicio = generar_ejercicio_aleatorio(tema)
+    try:
+        # Generar preguntas con Gemini
+        gemini_service = GeminiService()
+        preguntas = gemini_service.generar_preguntas(tema, cantidad=10)
+        
+        # Guardar preguntas en la sesión para la evaluación
+        session['preguntas_actuales'] = preguntas
+        session['tema_actual'] = tema
+        
+        # Registrar progreso del estudiante
+        user_id = session.get('user')
+        if user_id:
+            StudentData.update_student_progress(user_id, tema, ejercicio_completado=False)
 
-    return render_template(
-        "practico.html",
-        nombre=nombre,
-        tema=tema,
-        ejercicio=ejercicio
-    )
+        return render_template(
+            "practico.html",
+            nombre=nombre,
+            tema=tema,
+            preguntas=preguntas
+        )
+        
+    except Exception as e:
+        print(f"Error generando preguntas con Gemini: {e}")
+        # Fallback a preguntas estáticas en caso de error
+        ejercicio = generar_ejercicio_aleatorio(tema)
+        return render_template(
+            "practico.html",
+            nombre=nombre,
+            tema=tema,
+            ejercicio=ejercicio,
+            error="Error generando preguntas dinámicas. Usando preguntas estáticas."
+        )
+
+@app.route("/evaluar_respuestas", methods=["POST"])
+@login_required
+def evaluar_respuestas():
+    """Evaluar respuestas usando Gemini"""
+    try:
+        data = request.get_json()
+        tema = data.get('tema')
+        preguntas = data.get('preguntas')
+        respuestas_usuario = data.get('respuestas')
+        
+        if not all([tema, preguntas, respuestas_usuario]):
+            return jsonify({"success": False, "error": "Datos incompletos"})
+        
+        # Evaluar respuestas con Gemini
+        gemini_service = GeminiService()
+        respuestas_evaluadas = []
+        puntaje_total = 0
+        
+        for pregunta in preguntas:
+            pregunta_id = pregunta['id']
+            respuesta_usuario = respuestas_usuario.get(str(pregunta_id), '')
+            
+            # Evaluar respuesta
+            evaluacion = gemini_service.evaluar_respuesta(pregunta, respuesta_usuario)
+            
+            resultado = {
+                "pregunta_id": pregunta_id,
+                "respuesta_usuario": respuesta_usuario,
+                "correcta": evaluacion["correcta"],
+                "puntaje": evaluacion["puntaje"],
+                "explicacion": evaluacion["explicacion"]
+            }
+            
+            respuestas_evaluadas.append(resultado)
+            puntaje_total += evaluacion["puntaje"]
+        
+        # Calcular puntaje final
+        puntaje_final = (puntaje_total / len(preguntas)) * 100
+        
+        # Guardar progreso en Firebase
+        user_id = session.get('user')
+        if user_id:
+            progreso = {
+                "tema": tema,
+                "puntaje": puntaje_final,
+                "fecha": datetime.now().isoformat(),
+                "preguntas_respondidas": len(preguntas),
+                "respuestas_correctas": sum(1 for r in respuestas_evaluadas if r["correcta"])
+            }
+            
+            # Actualizar progreso del estudiante
+            StudentData.update_student_progress(user_id, tema, ejercicio_completado=True)
+            
+            # Guardar historial de evaluaciones
+            historial_result = StudentData.save_evaluation_history(user_id, progreso)
+            if not historial_result["success"]:
+                print(f"Error guardando historial: {historial_result['error']}")
+        
+        return jsonify({
+            "success": True,
+            "puntaje_final": puntaje_final,
+            "respuestas": respuestas_evaluadas,
+            "tema": tema
+        })
+        
+    except Exception as e:
+        print(f"Error evaluando respuestas: {e}")
+        return jsonify({"success": False, "error": str(e)})
 
 
 

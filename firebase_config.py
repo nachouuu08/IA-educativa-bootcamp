@@ -157,3 +157,29 @@ class StudentData:
             return StudentData.save_student_data(user_id, data)
         except Exception as e:
             return {"success": False, "error": str(e)}
+    
+    @staticmethod
+    def save_evaluation_history(user_id, evaluation_data):
+        """Guarda el historial de evaluaciones del estudiante"""
+        try:
+            # Obtener datos actuales del estudiante
+            result = StudentData.get_student_data(user_id)
+            if not result["success"]:
+                return {"success": False, "error": "No se pudieron cargar los datos del estudiante"}
+            
+            data = result["data"]
+            
+            # Inicializar historial si no existe
+            if "historial_evaluaciones" not in data:
+                data["historial_evaluaciones"] = []
+            
+            # Agregar nueva evaluación al historial
+            data["historial_evaluaciones"].append(evaluation_data)
+            
+            # Mantener solo las últimas 50 evaluaciones
+            if len(data["historial_evaluaciones"]) > 50:
+                data["historial_evaluaciones"] = data["historial_evaluaciones"][-50:]
+            
+            return StudentData.save_student_data(user_id, data)
+        except Exception as e:
+            return {"success": False, "error": str(e)}
