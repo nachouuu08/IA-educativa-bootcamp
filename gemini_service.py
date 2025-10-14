@@ -16,7 +16,8 @@ class GeminiService:
             raise ValueError("GEMINI_API_KEY no está configurada en las variables de entorno")
         
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        # Usar el modelo más reciente disponible
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
     
     def generar_preguntas(self, tema: str, nivel_academico: str = "universidad", cantidad: int = 10) -> List[Dict[str, Any]]:
         """
@@ -95,13 +96,13 @@ class GeminiService:
         """
         
         try:
-            print(f"🔄 Enviando prompt a Gemini...")
+            print(f"Enviando prompt a Gemini...")
             response = self.model.generate_content(prompt)
-            print(f"✅ Respuesta recibida de Gemini")
+            print(f"Respuesta recibida de Gemini")
             
             # Limpiar la respuesta para extraer solo el JSON
             content = response.text.strip()
-            print(f"📝 Contenido crudo: {content[:200]}...")
+            print(f"Contenido crudo: {content[:200]}...")
             
             # Buscar el JSON en la respuesta
             if content.startswith('```json'):
@@ -110,12 +111,12 @@ class GeminiService:
                 content = content[:-3]
             
             preguntas = json.loads(content)
-            print(f"✅ JSON parseado correctamente: {len(preguntas)} preguntas")
+            print(f"JSON parseado correctamente: {len(preguntas)} preguntas")
             return preguntas
             
         except Exception as e:
-            print(f"❌ Error generando preguntas: {e}")
-            print(f"❌ Tipo de error: {type(e).__name__}")
+            print(f"Error generando preguntas: {e}")
+            print(f"Tipo de error: {type(e).__name__}")
             # Preguntas de fallback en caso de error
             return self._preguntas_fallback(tema, cantidad)
     
@@ -209,18 +210,49 @@ class GeminiService:
     
     def _preguntas_fallback(self, tema: str, cantidad: int) -> List[Dict[str, Any]]:
         """Preguntas de fallback en caso de error con Gemini"""
-        return [
+        print("ADVERTENCIA: Usando preguntas de fallback - Gemini no disponible")
+        
+        # Preguntas estáticas más realistas
+        preguntas_base = [
             {
                 "id": 1,
                 "tipo": "opcion_multiple",
-                "pregunta": f"¿Cuál es el concepto principal de {tema}?",
+                "pregunta": f"¿Qué es la {tema.lower()} en estadística?",
                 "opciones": {
-                    "A": "Concepto A",
-                    "B": "Concepto B",
-                    "C": "Concepto C", 
-                    "D": "Concepto D"
+                    "A": "Una medida de tendencia central",
+                    "B": "Una medida de dispersión",
+                    "C": "Un tipo de gráfico",
+                    "D": "Un método de muestreo"
                 },
                 "respuesta_correcta": "A",
-                "explicacion": "Esta es una pregunta de ejemplo. Configura GEMINI_API_KEY para preguntas dinámicas."
+                "explicacion": f"La {tema.lower()} es una medida de tendencia central que representa el valor que divide un conjunto de datos en dos partes iguales."
+            },
+            {
+                "id": 2,
+                "tipo": "verdadero_falso",
+                "pregunta": f"La {tema.lower()} es menos sensible a valores extremos que la media.",
+                "opciones": {
+                    "A": "Verdadero",
+                    "B": "Falso"
+                },
+                "respuesta_correcta": "A",
+                "explicacion": "Verdadero. La mediana es más robusta ante valores atípicos porque solo considera la posición central de los datos."
+            },
+            {
+                "id": 3,
+                "tipo": "respuesta_abierta",
+                "pregunta": f"Explica brevemente cuándo es más útil usar la {tema.lower()} en lugar de la media aritmética.",
+                "opciones": None,
+                "respuesta_correcta": "Cuando hay valores extremos o atípicos en los datos",
+                "explicacion": "La mediana es más útil cuando los datos tienen valores extremos porque no se ve afectada por ellos, a diferencia de la media que puede distorsionarse."
             }
         ]
+        
+        # Repetir preguntas hasta alcanzar la cantidad deseada
+        preguntas = []
+        for i in range(cantidad):
+            pregunta = preguntas_base[i % len(preguntas_base)].copy()
+            pregunta["id"] = i + 1
+            preguntas.append(pregunta)
+        
+        return preguntas

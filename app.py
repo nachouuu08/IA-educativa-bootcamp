@@ -242,15 +242,15 @@ def practico():
         # Debug: Verificar configuración
         import os
         api_key = os.getenv('GEMINI_API_KEY')
-        print(f"🔍 DEBUG: API Key presente: {bool(api_key)}")
-        print(f"🔍 DEBUG: Nivel académico: {nivel_academico}")
-        print(f"🔍 DEBUG: Tema: {tema}")
+        print(f"DEBUG: API Key presente: {bool(api_key)}")
+        print(f"DEBUG: Nivel académico: {nivel_academico}")
+        print(f"DEBUG: Tema: {tema}")
         
         # Generar preguntas con Gemini adaptadas al nivel
         gemini_service = GeminiService()
         preguntas = gemini_service.generar_preguntas(tema, nivel_academico, cantidad=10)
         
-        print(f"🔍 DEBUG: Preguntas generadas: {len(preguntas)}")
+        print(f"DEBUG: Preguntas generadas: {len(preguntas)}")
         
         # Guardar preguntas en la sesión para la evaluación
         session['preguntas_actuales'] = preguntas
