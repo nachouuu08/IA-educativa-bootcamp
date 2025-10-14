@@ -81,12 +81,23 @@ def register():
         if result["success"]:
             user_id = result["user"]["localId"]
             
+            # Mapear nivel educativo al formato del sistema
+            nivel_mapping = {
+                "secundaria": "bachillerato",
+                "bachillerato": "bachillerato", 
+                "universidad": "universidad",
+                "posgrado": "postgrado",
+                "otro": "universidad"  # Default para "otro"
+            }
+            nivel_academico = nivel_mapping.get(nivel_educativo, "universidad")
+            
             # Guardar datos adicionales del estudiante
             student_data = {
                 "email": email,
                 "nombre": nombre,
                 "edad": int(edad),
                 "nivel_educativo": nivel_educativo,
+                "nivel_academico": nivel_academico,  # Para el sistema de preguntas
                 "intereses": intereses,
                 "fecha_registro": str(__import__('datetime').datetime.now()),
                 "progreso": {},
@@ -220,9 +231,17 @@ def practico():
         return redirect(url_for("index"))
 
     try:
-        # Generar preguntas con Gemini
+        # Obtener nivel académico del estudiante
+        user_id = session.get('user')
+        student_data = session.get('student_data')
+        nivel_academico = "universidad"  # Default
+        
+        if student_data and 'nivel_academico' in student_data:
+            nivel_academico = student_data['nivel_academico']
+        
+        # Generar preguntas con Gemini adaptadas al nivel
         gemini_service = GeminiService()
-        preguntas = gemini_service.generar_preguntas(tema, cantidad=10)
+        preguntas = gemini_service.generar_preguntas(tema, nivel_academico, cantidad=10)
         
         # Guardar preguntas en la sesión para la evaluación
         session['preguntas_actuales'] = preguntas
