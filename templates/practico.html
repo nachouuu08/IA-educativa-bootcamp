@@ -315,20 +315,14 @@
 </div>
 
 <script>
-    const preguntas = {{ preguntas | tojson }};
+    const preguntas = JSON.parse('{{ preguntas | tojson | safe }}');
 
-    // Mostrar skeleton apenas se carga la ventana
+    // Mostrar preguntas inmediatamente (ya vienen generadas del backend)
     document.addEventListener('DOMContentLoaded', () => {
-        // Mostrar skeleton inmediatamente
-        document.getElementById('skeletonContainer').style.display = 'block';
-        document.getElementById('questionsContainer').style.display = 'none';
-
-        // Simular tiempo de carga antes de mostrar preguntas
-        setTimeout(() => {
-            document.getElementById('skeletonContainer').style.display = 'none';
-            document.getElementById('questionsContainer').style.display = 'block';
-            updateProgress();
-        }, 1500);
+        // Ocultar skeleton y mostrar preguntas
+        document.getElementById('skeletonContainer').style.display = 'none';
+        document.getElementById('questionsContainer').style.display = 'block';
+        updateProgress();
     });
 
     function selectOption(element) {

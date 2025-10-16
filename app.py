@@ -175,7 +175,7 @@ def index():
         if estilo == "Visual":
             return redirect(url_for("visual", nombre=nombre_estudiante, tema=tema))
         elif estilo == "Práctico":
-            return redirect(url_for("practico", nombre=nombre_estudiante, tema=tema))
+            return redirect(url_for("loading_practico", nombre=nombre_estudiante, tema=tema))
 
     return render_template("index.html", nombre=nombre_estudiante, temas=temas["Estadística"])
 
@@ -217,6 +217,19 @@ def visual():
         videos=videos
     )
 
+
+# ---------------------- LOADING PRÁCTICO ------------------------
+@app.route("/loading_practico")
+@login_required
+def loading_practico():
+    nombre = request.args.get("nombre")
+    tema = request.args.get("tema")
+    
+    if not tema:
+        flash("⚠️ Tema no especificado.")
+        return redirect(url_for("index"))
+    
+    return render_template("loading_practico.html", nombre=nombre, tema=tema)
 
 # ---------------------- PRÁCTICO ------------------------
 @app.route("/practico", methods=["GET", "POST"])
