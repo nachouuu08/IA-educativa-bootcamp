@@ -272,43 +272,7 @@
         <!-- Contenedor real -->
         <div id="questionsContainer" style="display:none;">
             <form id="evaluationForm">
-                {% for pregunta in preguntas %}
-                <div class="question-item" data-question-id="{{ pregunta.id }}">
-                    <div class="question-header">
-                        <span class="question-number">Pregunta {{ pregunta.id }}</span>
-                        <span class="question-type">
-                            {% if pregunta.tipo == 'opcion_multiple' %}Opción Múltiple
-                            {% elif pregunta.tipo == 'verdadero_falso' %}Verdadero/Falso
-                            {% elif pregunta.tipo == 'respuesta_abierta' %}Respuesta Abierta
-                            {% endif %}
-                        </span>
-                    </div>
-
-                    <div class="question-text">{{ pregunta.pregunta }}</div>
-
-                    {% if pregunta.tipo == 'opcion_multiple' or pregunta.tipo == 'verdadero_falso' %}
-                    <div class="options-container">
-                        {% for key, value in pregunta.opciones.items() %}
-                        <label class="option" onclick="selectOption(this)">
-                            <input type="radio" name="pregunta_{{ pregunta.id }}" value="{{ key }}">
-                            <strong>{{ key }}.</strong> {{ value }}
-                        </label>
-                        {% endfor %}
-                    </div>
-                    {% elif pregunta.tipo == 'respuesta_abierta' %}
-                    <textarea class="open-response" name="pregunta_{{ pregunta.id }}" 
-                              placeholder="Escribe tu respuesta aquí..."></textarea>
-                    {% endif %}
-
-                    <div class="feedback" id="feedback_{{ pregunta.id }}" style="display:none;"></div>
-                </div>
-                {% endfor %}
-
-                <div class="evaluation-actions">
-                    <button type="button" class="btn-evaluate" onclick="evaluarRespuestas()">
-                        📊 Evaluar Respuestas
-                    </button>
-                </div>
+                <!-- Las preguntas se cargarán dinámicamente aquí -->
             </form>
         </div>
     </div>
@@ -342,13 +306,16 @@
             const resultado = await response.json();
             
             if (resultado.success) {
-                // Ocultar skeleton y mostrar preguntas
-                document.getElementById('skeletonContainer').style.display = 'none';
-                document.getElementById('questionsContainer').style.display = 'block';
-                
                 // Actualizar el array de preguntas
                 preguntas.length = 0;
                 preguntas.push(...resultado.preguntas);
+                
+                // Renderizar preguntas dinámicamente
+                renderizarPreguntas(resultado.preguntas);
+                
+                // Ocultar skeleton y mostrar preguntas
+                document.getElementById('skeletonContainer').style.display = 'none';
+                document.getElementById('questionsContainer').style.display = 'block';
                 
                 updateProgress();
             } else {
@@ -359,6 +326,61 @@
             console.error('Error de conexión:', error);
             alert('Error de conexión al cargar preguntas');
         }
+    }
+
+    function renderizarPreguntas(preguntasData) {
+        const form = document.getElementById('evaluationForm');
+        form.innerHTML = '';
+        
+        preguntasData.forEach((pregunta, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question-item';
+            questionDiv.setAttribute('data-question-id', pregunta.id);
+            
+            let optionsHtml = '';
+            if (pregunta.tipo === 'opcion_multiple' || pregunta.tipo === 'verdadero_falso') {
+                optionsHtml = '<div class="options-container">';
+                for (const [key, value] of Object.entries(pregunta.opciones)) {
+                    optionsHtml += `
+                        <label class="option" onclick="selectOption(this)">
+                            <input type="radio" name="pregunta_${pregunta.id}" value="${key}">
+                            <strong>${key}.</strong> ${value}
+                        </label>
+                    `;
+                }
+                optionsHtml += '</div>';
+            } else if (pregunta.tipo === 'respuesta_abierta') {
+                optionsHtml = `
+                    <textarea class="open-response" name="pregunta_${pregunta.id}" 
+                              placeholder="Escribe tu respuesta aquí..."></textarea>
+                `;
+            }
+            
+            const tipoTexto = pregunta.tipo === 'opcion_multiple' ? 'Opción Múltiple' :
+                            pregunta.tipo === 'verdadero_falso' ? 'Verdadero/Falso' : 'Respuesta Abierta';
+            
+            questionDiv.innerHTML = `
+                <div class="question-header">
+                    <span class="question-number">Pregunta ${pregunta.id}</span>
+                    <span class="question-type">${tipoTexto}</span>
+                </div>
+                <div class="question-text">${pregunta.pregunta}</div>
+                ${optionsHtml}
+                <div class="feedback" id="feedback_${pregunta.id}" style="display:none;"></div>
+            `;
+            
+            form.appendChild(questionDiv);
+        });
+        
+        // Agregar botón de evaluación
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'evaluation-actions';
+        actionsDiv.innerHTML = `
+            <button type="button" class="btn-evaluate" onclick="evaluarRespuestas()">
+                📊 Evaluar Respuestas
+            </button>
+        `;
+        form.appendChild(actionsDiv);
     }
 
     function selectOption(element) {
