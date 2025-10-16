@@ -112,6 +112,22 @@
             border-radius: var(--border-radius);
             font-weight: 600;
         }
+        .result-stats {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        .result-stats .stat {
+            background: var(--gray-100);
+            border-radius: var(--border-radius);
+            padding: 8px 12px;
+            border-left: 4px solid var(--gray-300);
+        }
+        .result-stats .good { border-left-color: var(--success-color); color: var(--success-color); }
+        .result-stats .bad { border-left-color: var(--danger-color); color: var(--danger-color); }
+        .result-stats .total { border-left-color: var(--primary-color); color: var(--primary-color); }
         .progress-bar {
             background: var(--gray-200);
             height: 8px;
@@ -255,6 +271,11 @@
                 <div class="progress-fill" id="progressFill"></div>
             </div>
             <p>Responde todas las preguntas y presiona "Evaluar" al final</p>
+            <div id="resultStats" class="result-stats" style="display:none;">
+                <div class="stat good">Buenas: <span id="statBuenas">0</span></div>
+                <div class="stat bad">Malas: <span id="statMalas">0</span></div>
+                <div class="stat total">Total: <span id="statTotal">0</span></div>
+            </div>
         </div>
 
         <!-- Skeleton Loading -->
@@ -446,6 +467,16 @@
                     fb.className='feedback '+(r.correcta?'correct':'incorrect');
                     fb.innerHTML=`${r.correcta?'✅':'❌'} ${r.explicacion}`;
                 });
+
+                // Mostrar estadísticas arriba: buenas, malas y total
+                const total = resultado.respuestas.length;
+                const buenas = resultado.respuestas.filter(r => r.correcta).length;
+                const malas = total - buenas;
+                document.getElementById('statBuenas').textContent = buenas;
+                document.getElementById('statMalas').textContent = malas;
+                document.getElementById('statTotal').textContent = total;
+                const stats = document.getElementById('resultStats');
+                stats.style.display = 'flex';
             } else {
                 alert('Error al evaluar: '+resultado.error);
             }
