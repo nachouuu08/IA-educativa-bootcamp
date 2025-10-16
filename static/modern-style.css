@@ -669,6 +669,6 @@ input:hover, select:hover, textarea:hover {
     transform: scale(1.03);
     transition: var(--transition);
 }
-.style-option.active .gray-800, .style-option.active .gray-600 {
-    color: var(--white)!important;
+.style-option.active * {
+    color: var(--white) !important;
 }
