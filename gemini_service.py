@@ -112,7 +112,34 @@ class GeminiService:
             
             preguntas = json.loads(content)
             print(f"JSON parseado correctamente: {len(preguntas)} preguntas")
-            return preguntas
+
+            # Deduplicar por enunciado de la pregunta (casefold y strip)
+            preguntas_unicas = []
+            vistos = set()
+            for p in preguntas:
+                enunciado = str(p.get("pregunta", "")).strip().casefold()
+                if enunciado and enunciado not in vistos:
+                    vistos.add(enunciado)
+                    preguntas_unicas.append(p)
+
+            # Completar con fallback si faltan preguntas
+            if len(preguntas_unicas) < cantidad:
+                faltantes = cantidad - len(preguntas_unicas)
+                fallback = self._preguntas_fallback(tema, faltantes)
+                for p in fallback:
+                    enunciado = str(p.get("pregunta", "")).strip().casefold()
+                    if enunciado and enunciado not in vistos:
+                        vistos.add(enunciado)
+                        preguntas_unicas.append(p)
+                    if len(preguntas_unicas) >= cantidad:
+                        break
+
+            # Limitar a la cantidad solicitada y normalizar ids
+            preguntas_unicas = preguntas_unicas[:cantidad]
+            for i, p in enumerate(preguntas_unicas, start=1):
+                p["id"] = i
+
+            return preguntas_unicas
             
         except Exception as e:
             print(f"Error generando preguntas: {e}")
