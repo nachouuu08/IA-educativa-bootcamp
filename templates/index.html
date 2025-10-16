@@ -41,7 +41,7 @@
 
                 <div class="form-section">
                     <label>Estilo de aprendizaje</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;" id="estilosGrid">
                         <label class="style-option" style="cursor: pointer; border: 2px solid var(--gray-200); padding: 20px; border-radius: var(--border-radius); text-align: center; transition: var(--transition);">
                             <input type="radio" name="estilo" value="Visual" required style="display: none;">
                             <div style="font-size: 2rem; margin-bottom: 10px;">👁️</div>
@@ -68,6 +68,18 @@
             submitBtn.classList.add('loading');
             submitBtn.innerHTML = 'Cargando...';
         });
+        // Retroalimentación visual para radios
+        document.querySelectorAll('input[name="estilo"]').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.style-option').forEach(function(label) {
+                    label.classList.remove('active');
+                });
+                this.closest('.style-option').classList.add('active');
+            });
+        });
+        // Si hay valor preseleccionado al recargar
+        const checked = document.querySelector('input[name="estilo"]:checked');
+        if (checked) checked.closest('.style-option').classList.add('active');
     </script>
 </body>
 </html>

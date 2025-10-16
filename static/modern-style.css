@@ -660,3 +660,15 @@ input:hover, select:hover, textarea:hover {
 .fade-in-up {
     animation: fadeInUp 0.6s ease-out;
 }
+
+.style-option.active {
+    border-color: var(--primary-color) !important;
+    background: var(--primary-gradient);
+    color: var(--white);
+    box-shadow: var(--shadow-lg);
+    transform: scale(1.03);
+    transition: var(--transition);
+}
+.style-option.active .gray-800, .style-option.active .gray-600 {
+    color: var(--white)!important;
+}
