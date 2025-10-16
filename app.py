@@ -175,7 +175,7 @@ def index():
         if estilo == "Visual":
             return redirect(url_for("visual", nombre=nombre_estudiante, tema=tema))
         elif estilo == "Práctico":
-            return redirect(url_for("loading_practico", nombre=nombre_estudiante, tema=tema))
+            return redirect(url_for("practico", nombre=nombre_estudiante, tema=tema))
 
     return render_template("index.html", nombre=nombre_estudiante, temas=temas["Estadística"])
 
@@ -218,19 +218,6 @@ def visual():
     )
 
 
-# ---------------------- LOADING PRÁCTICO ------------------------
-@app.route("/loading_practico")
-@login_required
-def loading_practico():
-    nombre = request.args.get("nombre")
-    tema = request.args.get("tema")
-    
-    if not tema:
-        flash("⚠️ Tema no especificado.")
-        return redirect(url_for("index"))
-    
-    return render_template("loading_practico.html", nombre=nombre, tema=tema)
-
 # ---------------------- PRÁCTICO ------------------------
 @app.route("/practico", methods=["GET", "POST"])
 @login_required
@@ -243,7 +230,33 @@ def practico():
         flash("⚠️ Tema no especificado.")
         return redirect(url_for("index"))
 
+    # Guardar tema en sesión para generación asíncrona
+    session['tema_actual'] = tema
+    
+    # Registrar progreso del estudiante
+    user_id = session.get('user')
+    if user_id:
+        StudentData.update_student_progress(user_id, tema, ejercicio_completado=False)
+
+    # Mostrar página inmediatamente con skeleton loading
+    return render_template(
+        "practico.html",
+        nombre=nombre,
+        tema=tema,
+        preguntas=[]  # Vacío inicialmente
+    )
+
+@app.route("/generar_preguntas", methods=["POST"])
+@login_required
+def generar_preguntas():
+    """Generar preguntas de forma asíncrona"""
     try:
+        data = request.get_json()
+        tema = data.get('tema')
+        
+        if not tema:
+            return jsonify({"success": False, "error": "Tema no especificado"})
+        
         # Obtener nivel académico del estudiante
         user_id = session.get('user')
         student_data = session.get('student_data')
@@ -252,46 +265,21 @@ def practico():
         if student_data and 'nivel_academico' in student_data:
             nivel_academico = student_data['nivel_academico']
         
-        # Debug: Verificar configuración
-        import os
-        api_key = os.getenv('GEMINI_API_KEY')
-        print(f"DEBUG: API Key presente: {bool(api_key)}")
-        print(f"DEBUG: Nivel académico: {nivel_academico}")
-        print(f"DEBUG: Tema: {tema}")
-        
-        # Generar preguntas con Gemini adaptadas al nivel
+        # Generar preguntas con Gemini
         gemini_service = GeminiService()
         preguntas = gemini_service.generar_preguntas(tema, nivel_academico, cantidad=10)
         
-        print(f"DEBUG: Preguntas generadas: {len(preguntas)}")
-        
-        # Guardar preguntas en la sesión para la evaluación
+        # Guardar preguntas en la sesión
         session['preguntas_actuales'] = preguntas
-        session['tema_actual'] = tema
         
-        # Registrar progreso del estudiante
-        user_id = session.get('user')
-        if user_id:
-            StudentData.update_student_progress(user_id, tema, ejercicio_completado=False)
-
-        return render_template(
-            "practico.html",
-            nombre=nombre,
-            tema=tema,
-            preguntas=preguntas
-        )
+        return jsonify({
+            "success": True,
+            "preguntas": preguntas
+        })
         
     except Exception as e:
-        print(f"Error generando preguntas con Gemini: {e}")
-        # Fallback a preguntas estáticas en caso de error
-        ejercicio = generar_ejercicio_aleatorio(tema)
-        return render_template(
-            "practico.html",
-            nombre=nombre,
-            tema=tema,
-            ejercicio=ejercicio,
-            error="Error generando preguntas dinámicas. Usando preguntas estáticas."
-        )
+        print(f"Error generando preguntas: {e}")
+        return jsonify({"success": False, "error": str(e)})
 
 @app.route("/evaluar_respuestas", methods=["POST"])
 @login_required

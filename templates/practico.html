@@ -315,15 +315,51 @@
 </div>
 
 <script>
-    const preguntas = JSON.parse('{{ preguntas | tojson | safe }}');
+    let preguntas = [];
 
-    // Mostrar preguntas inmediatamente (ya vienen generadas del backend)
+    // Mostrar skeleton inmediatamente y cargar preguntas de forma asíncrona
     document.addEventListener('DOMContentLoaded', () => {
-        // Ocultar skeleton y mostrar preguntas
-        document.getElementById('skeletonContainer').style.display = 'none';
-        document.getElementById('questionsContainer').style.display = 'block';
-        updateProgress();
+        // Mostrar skeleton loading
+        document.getElementById('skeletonContainer').style.display = 'block';
+        document.getElementById('questionsContainer').style.display = 'none';
+        
+        // Cargar preguntas de forma asíncrona
+        cargarPreguntas();
     });
+
+    async function cargarPreguntas() {
+        try {
+            const response = await fetch('/generar_preguntas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tema: '{{ tema }}'
+                })
+            });
+            
+            const resultado = await response.json();
+            
+            if (resultado.success) {
+                // Ocultar skeleton y mostrar preguntas
+                document.getElementById('skeletonContainer').style.display = 'none';
+                document.getElementById('questionsContainer').style.display = 'block';
+                
+                // Actualizar el array de preguntas
+                preguntas.length = 0;
+                preguntas.push(...resultado.preguntas);
+                
+                updateProgress();
+            } else {
+                console.error('Error cargando preguntas:', resultado.error);
+                alert('Error generando preguntas: ' + resultado.error);
+            }
+        } catch (error) {
+            console.error('Error de conexión:', error);
+            alert('Error de conexión al cargar preguntas');
+        }
+    }
 
     function selectOption(element) {
         const questionContainer = element.closest('.question-item');
