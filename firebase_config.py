@@ -44,24 +44,51 @@ initialize_firebase()
 class FirebaseAuth:
     @staticmethod
     def login_user(email, password):
-        """Autentica un usuario con email y contraseña usando Firebase Admin SDK"""
+        """Autentica un usuario con email y contraseña contra Firebase Auth (REST).
+
+        Importante: la verificación de contraseña SOLO es posible vía REST/Web API
+        (`signInWithPassword`). Este método requiere la variable de entorno
+        `FIREBASE_WEB_API_KEY` configurada.
+        """
         try:
-            # Crear usuario personalizado con Firebase Admin SDK
-            user_record = auth.get_user_by_email(email)
-            if user_record:
-                # Verificar que el usuario existe (la contraseña se verifica en el cliente)
-                # Por ahora retornamos éxito si el usuario existe
+            api_key = os.environ.get("FIREBASE_WEB_API_KEY")
+            if not api_key:
+                return {"success": False, "error": "Falta configurar FIREBASE_WEB_API_KEY"}
+
+            url = f"{FIREBASE_AUTH_URL}:signInWithPassword?key={api_key}"
+            payload = {
+                "email": email,
+                "password": password,
+                "returnSecureToken": True
+            }
+
+            resp = requests.post(url, json=payload, timeout=10)
+            if resp.status_code == 200:
+                data = resp.json()
                 return {
-                    "success": True, 
+                    "success": True,
                     "user": {
-                        "localId": user_record.uid,
-                        "email": user_record.email
+                        "localId": data.get("localId"),
+                        "email": data.get("email"),
+                        "idToken": data.get("idToken"),
+                        "refreshToken": data.get("refreshToken")
                     }
                 }
-            else:
-                return {"success": False, "error": "Usuario no encontrado"}
-        except auth.UserNotFoundError:
-            return {"success": False, "error": "Usuario no encontrado"}
+
+            error_data = resp.json() if resp.content else {}
+            error_message = (
+                error_data.get("error", {}).get("message")
+                if isinstance(error_data, dict) else None
+            )
+
+            # Mapear mensajes comunes de Firebase a español
+            firebase_error_map = {
+                "EMAIL_NOT_FOUND": "Usuario no encontrado",
+                "INVALID_PASSWORD": "Contraseña incorrecta",
+                "USER_DISABLED": "La cuenta está deshabilitada",
+            }
+            human_message = firebase_error_map.get(error_message, "Error de autenticación")
+            return {"success": False, "error": human_message}
         except Exception as e:
             return {"success": False, "error": str(e)}
     
@@ -183,3 +210,4 @@ class StudentData:
             return StudentData.save_student_data(user_id, data)
         except Exception as e:
             return {"success": False, "error": str(e)}
+
